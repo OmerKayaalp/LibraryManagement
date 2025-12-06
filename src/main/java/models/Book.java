@@ -33,7 +33,7 @@ public class Book {
         return author;
     }
 
-    public boolean isIsAvailable() {
+    public boolean isAvailable() {
         return isAvailable;
     }
     
@@ -44,14 +44,14 @@ public class Book {
     public MyQueue<Member> getWaitList() {
         return waitList;
     }
+    public void markBorrowed(){
+    this.isAvailable=false;}
     
-    public boolean borrowBook(){
-    if(!isAvailable)return false;
-    isAvailable = false;
-    popularityCount ++;
-    return true;
-    }
-    public void returnBook(){
-    isAvailable=true;
-    }
+    public void markReturned(){
+    this.isAvailable = true;}
+    
+    public void incrementPopularity(){
+    this.popularityCount++;}
+    
+    
 }
