@@ -1,55 +1,49 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package models;
-import java.time.LocalDate;
+
+import java.util.Date;
 
 public class LoanRecord {
+
     private Member member;
     private Book book;
-    private LocalDate borrowDate;
-    private LocalDate returnDate;
-    private boolean isReturned;
+    private Date borrowDate;
+    private Date returnDate;
+    private boolean returned;
 
     public LoanRecord(Member member, Book book) {
         this.member = member;
         this.book = book;
-        this.borrowDate = LocalDate.now();
-        this.returnDate = null;
-        this.isReturned = false;
+        this.borrowDate = new Date();
+        this.returned = false;
+
+        // İşlemler
+        book.borrowCopy();
+        member.borrowBook(book);
     }
 
-    public Member getMember() {
-        return member;
-    }
+    public Member getMember() { return member; }
+    public Book getBook() { return book; }
+    public boolean isReturned() { return returned; }
 
-    public Book getBook() {
-        return book;
-    }
+    // ----- KİTAP İADE EDİLİYOR -----
+    public void markReturned() {
+        if (returned) return;
 
-    public LocalDate getBorrowDate() {
-        return borrowDate;
-    }
+        returned = true;
+        returnDate = new Date();
 
-    public LocalDate getReturnDate() {
-        return returnDate;
-    }
-    public boolean isReturned(){
-    return isReturned;
-    }
-
-    public void setReturnDate(LocalDate returnDate) {
-        this.returnDate = returnDate;
-    }
-    
-    public void markReturned(){
-            if(!isReturned){
-        this.isReturned=true;
-        this.returnDate=LocalDate.now();}
-            
-        book.markReturned();
+        // 1) Üye kitabı bırakır
         member.returnBook(book);
-                
-    }    
+
+        // 2) Kitap kopyası iade edilir
+        book.returnCopy();
+
+        // 3) Sıradaki üye varsa otomatik verir
+        Member next = book.getNextWaitingMember();
+
+        if (next != null) {
+            next.borrowBook(book);
+            book.borrowCopy();
+        }
+    }
 }

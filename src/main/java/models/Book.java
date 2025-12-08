@@ -1,57 +1,65 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package models;
+
 import dataStructure.queue.MyQueue;
 
 public class Book {
     private int id;
     private String title;
     private String author;
-    private boolean isAvailable;
-    private int popularityCount =0;
+    private int totalCopies;
+    private int borrowedCopies;
+    private int popularityCount;
+
     private MyQueue<Member> waitList;
 
-    public Book(int id, String title, String author) {
+    public Book(int id, String title, String author, int totalCopies) {
         this.id = id;
         this.title = title;
         this.author = author;
-        this.isAvailable = true;
+        this.totalCopies = totalCopies;
+        this.borrowedCopies = 0;
+        this.popularityCount = 0;
         this.waitList = new MyQueue<>();
     }
 
-    public int getId() {
-        return id;
+    public int getId() { return id; }
+    public String getTitle() { return title; }
+    public String getAuthor() { return author; }
+
+    public int getAvailableCopies() {
+        return totalCopies - borrowedCopies;
     }
 
-    public String getTitle() {
-        return title;
+    // ----- BORROW -----
+    public void borrowCopy() {
+        if (getAvailableCopies() > 0) {
+            borrowedCopies++;
+            popularityCount++;
+        }
     }
 
-    public String getAuthor() {
-        return author;
+    // ----- RETURN -----
+    public void returnCopy() {
+        if (borrowedCopies > 0)
+            borrowedCopies--;
     }
 
-    public boolean isAvailable() {
-        return isAvailable;
-    }
-    
-    public int getPopularityCount(){
-    return popularityCount;
+    // ----- WAITLIST -----
+    public void addToWaitList(Member m) {
+        waitList.enqueue(m);
     }
 
-    public MyQueue<Member> getWaitList() {
-        return waitList;
+    public Member getNextWaitingMember() {
+        if (waitList.isEmpty()) return null;
+        return waitList.dequeue();
     }
-    public void markBorrowed(){
-    this.isAvailable=false;}
-    
-    public void markReturned(){
-    this.isAvailable = true;}
-    
-    public void incrementPopularity(){
-    this.popularityCount++;}
-    
-    
+
+    // ----- CHECK -----
+    public boolean canBeBorrowed() {
+        return getAvailableCopies() > 0;
+    }
+
+    public int getPopularity() {
+        return popularityCount;
+    }
 }
