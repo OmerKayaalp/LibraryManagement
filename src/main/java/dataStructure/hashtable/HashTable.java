@@ -1,6 +1,8 @@
 
 package dataStructure.hashtable;
 
+import dataStructure.linkedList.MyLinkedList;
+
 public class HashTable<K, V> {
 
     private HashNode<K, V>[] buckets;
@@ -55,6 +57,7 @@ public class HashTable<K, V> {
             resize();
         }
     }
+    
 
     public V get(K key) {
         validateKey(key);
@@ -71,6 +74,30 @@ public class HashTable<K, V> {
 
         return null;
     }
+    public MyLinkedList<V> values() {
+    MyLinkedList<V> list = new MyLinkedList<>();
+
+    for (int i = 0; i < capacity; i++) {
+        HashNode<K, V> head = buckets[i];
+        while (head != null) {
+            list.add(head.getValue());
+            head = head.getNext();
+        }
+    }
+    return list;
+    }
+    public MyLinkedList<K> keySet() {
+    MyLinkedList<K> keys = new MyLinkedList<>();
+
+    for (int i = 0; i < capacity; i++) {
+        HashNode<K, V> head = buckets[i];
+        while (head != null) {
+            keys.add(head.getKey());
+            head = head.getNext();
+        }
+    }
+    return keys;
+}
 
    public V remove(K key) {
         validateKey(key);
