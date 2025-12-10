@@ -7,7 +7,7 @@ import models.LoanRecord;
 import dataStructure.linkedList.MyLinkedList;
 import dataStructure.queue.MyQueue;
 
-import java.util.Random;1
+import java.util.Random;
 
 import java.util.Scanner;
 import java.util.List;
