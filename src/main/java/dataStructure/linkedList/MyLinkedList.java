@@ -1,112 +1,178 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dataStructure.linkedList;
 
-public class MyLinkedList <T>{
-    private static class Node<T>{
-    T data;
-    Node<T>next;
-    public Node(T data){
-    this.data = data;
-    this.next=null;}
+public class MyLinkedList<T> {
+
+    private static class Node<T> {
+        T data;
+        Node<T> next;
+
+        Node(T data) {
+            this.data = data;
+        }
     }
-    
-    
+
     private Node<T> head;
     private int size;
-    
-    public MyLinkedList(){
-    head=null;
-    size=0;
-    }
-    
-    public void add(T element){
-     Node<T> newNode = new Node<>(element);
-     if(head==null){
-     head=newNode;}
-     else{
-     Node<T> current=head;
-     while(current.next !=null){
-     current=current.next;}
-     current.next=newNode;}
-     size++;
+
+    public MyLinkedList() {
+        head = null;
+        size = 0;
     }
 
-    public void remove(T element) {
-        if (head == null) return;
+    // ------------------------------
+    // Add element at end
+    // ------------------------------
+    public void add(T element) {
+        Node<T> newNode = new Node<>(element);
 
-        if (head.data.equals(element)) {
-            head = head.next;
-            size--;
-            return;
+        if (head == null) {
+            head = newNode;
+        } else {
+            Node<T> current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
         }
 
-        Node<T> current = head;
-        while (current.next != null && !current.next.data.equals(element)) {
-            current = current.next;
+        size++;
+    }
+
+    // ------------------------------
+    // Add element at index
+    // ------------------------------
+    public void add(int index, T element) {
+        if (index < 0 || index > size) 
+            throw new IndexOutOfBoundsException("Index: " + index);
+
+        Node<T> newNode = new Node<>(element);
+
+        if (index == 0) {
+            newNode.next = head;
+            head = newNode;
+        } else {
+            Node<T> current = head;
+            for (int i = 0; i < index - 1; i++) {
+                current = current.next;
+            }
+            newNode.next = current.next;
+            current.next = newNode;
         }
 
-        if (current.next != null) {
-            current.next = current.next.next;
-            size--;
-        }
+        size++;
     }
-    public boolean contains(T element){
-        Node<T> current = head;
-        while(current!=null){
-        if(current.data.equals(element)){
-        current = current.next;
-        return true;
-        }
-        current = current.next;
-    }
-        return false;
-    }
-   public int size() {
-        return size;
-    }
-    public boolean isEmpty(){
-return size == 0;
-}
-    
+
+    // ------------------------------
+    // Get element by index
+    // ------------------------------
     public T get(int index) {
-        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
+        if (index < 0 || index >= size) 
+            throw new IndexOutOfBoundsException("Index: " + index);
+
         Node<T> current = head;
         for (int i = 0; i < index; i++) {
             current = current.next;
         }
+
         return current.data;
     }
-    public void clear(){
-    head=null;
-    size=0;
-    }
-    public void printList(){
-    Node<T>current=head;
-    while(current!=null){
-    System.out.println(current.data + " -> ");
-    current = current.next;
-    }
-     System.out.println("null");
-    }
-    public T getFirst(){
-    if(head==null){
-        throw new IllegalStateException("List is empty!");      
-    }
-    return head.data;
-    }
-    public T getLast() {
-    if (head == null) {
-        throw new IllegalStateException("List is empty!");
+
+    // ------------------------------
+    // Remove element BY VALUE
+    // ------------------------------
+    public boolean remove(T element) {
+        if (head == null) return false;
+
+        if (head.data.equals(element)) {
+            head = head.next;
+            size--;
+            return true;
+        }
+
+        Node<T> current = head;
+        while (current.next != null) {
+            if (current.next.data.equals(element)) {
+                current.next = current.next.next;
+                size--;
+                return true;
+            }
+            current = current.next;
+        }
+
+        return false;
     }
 
-    Node<T> current = head;
-    while (current.next != null) {
-        current = current.next;
+    // ------------------------------
+    // Remove element BY INDEX
+    // ------------------------------
+    public T removeByIndex(int index) {
+        if (index < 0 || index >= size)
+            throw new IndexOutOfBoundsException("Index: " + index);
+
+        if (index == 0) {
+            T removed = head.data;
+            head = head.next;
+            size--;
+            return removed;
+        }
+
+        Node<T> current = head;
+
+        for (int i = 0; i < index - 1; i++) {
+            current = current.next;
+        }
+
+        T removed = current.next.data;
+        current.next = current.next.next;
+        size--;
+
+        return removed;
     }
-    return current.data;
-}
-   
+
+    // ------------------------------
+    // Contains check
+    // ------------------------------
+    public boolean contains(T element) {
+        Node<T> current = head;
+        while (current != null) {
+            if (current.data.equals(element)) return true;
+            current = current.next;
+        }
+        return false;
+    }
+
+    // ------------------------------
+    // Size & empty
+    // ------------------------------
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    // ------------------------------
+    // Clear list
+    // ------------------------------
+    public void clear() {
+        head = null;
+        size = 0;
+    }
+
+    // ------------------------------
+    // toString (debug)
+    // ------------------------------
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[");
+        Node<T> current = head;
+        while (current != null) {
+            sb.append(current.data);
+            if (current.next != null) sb.append(", ");
+            current = current.next;
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 }

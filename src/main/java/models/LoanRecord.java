@@ -4,87 +4,126 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 public class LoanRecord {
-    private Member member;
-    private Book book;
-    private LocalDate borrowDate;
-    private LocalDate dueDate;
+
+    private final Book book;
+    private final Member member;
+    private final LocalDate borrowDate;
     private LocalDate returnDate;
-    private boolean isReturned;
+    private boolean returned;
 
-    // default loan period in days (configurable if needed)
+    // default gün sayısı (istersen constructor ile değiştirebilirsin)
     private static final int DEFAULT_LOAN_DAYS = 14;
-    private static final double DAILY_FINE = 2.5; // currency per day
+    // günlük ceza (TL veya istediğin birim)
+    private static final double FINE_PER_DAY = 2.0;
 
-    public LoanRecord(Member member, Book book) {
-        this(member, book, DEFAULT_LOAN_DAYS);
-    }
-
-    public LoanRecord(Member member, Book book, int loanDays) {
-        this.member = member;
+    public LoanRecord(Book book, Member member) {
         this.book = book;
+        this.member = member;
         this.borrowDate = LocalDate.now();
-        this.dueDate = borrowDate.plusDays(loanDays);
+        this.returned = false;
         this.returnDate = null;
-        this.isReturned = false;
     }
 
-    // --- getters ---
-    public Member getMember() { return member; }
-    public Book getBook() { return book; }
-    public LocalDate getBorrowDate() { return borrowDate; }
-    public LocalDate getDueDate() { return dueDate; }
-    public LocalDate getReturnDate() { return returnDate; }
-    public boolean isReturned() { return isReturned; }
+    public Book getBook() {
+        return book;
+    }
 
-    // --- overdue / fine helpers ---
-    public boolean isOverdue() {
-        if (isReturned) {
-            return returnDate.isAfter(dueDate);
-        } else {
-            return LocalDate.now().isAfter(dueDate);
+    public Member getMember() {
+        return member;
+    }
+
+    public LocalDate getBorrowDate() {
+        return borrowDate;
+    }
+
+    public LocalDate getReturnDate() {
+        return returnDate;
+    }
+
+    public boolean isReturned() {
+        return returned;
+    }
+
+    /** Kitabın son teslim tarihi (varsayılan 14 gün) */
+    public LocalDate getDueDate() {
+        return borrowDate.plusDays(DEFAULT_LOAN_DAYS);
+    }
+
+    /**
+     * Normal iade: Book ve Member güncellemeleri yapılır.
+     * LibrarySystem içinden çağrıldığında döngü yaratmamak için dikkatli kullan.
+     */
+    public void markReturned() {
+        if (returned) return;
+
+        this.returned = true;
+        this.returnDate = LocalDate.now();
+
+        // kitap kopyasını geri al
+        book.returnCopy();
+
+        // üyeyi güncelle (üye aktif kitaptan çıkarılır)
+        member.returnBook(book);
+
+        // bekleme listesine otomatik geçiş
+        Member next = book.getNextWaitingMember();
+        if (next != null && next.canBorrow()) {
+            boolean borrowed = book.borrowCopy();
+            if (borrowed) {
+                next.borrowBook(book); // yeni LoanRecord oluşturur ve üyeyi günceller
+            } else {
+                book.addToWaitList(next);
+            }
         }
     }
 
+    /**
+     * Undo için: member'ı değiştirmeden sadece book kopyasını geri alır.
+     */
+    public void markReturnedWithoutMember() {
+        if (returned) return;
+
+        this.returned = true;
+        this.returnDate = LocalDate.now();
+
+        // sadece book copy iade edilsin
+        book.returnCopy();
+    }
+
+    /**
+     * Gecikme gün sayısını hesaplar.
+     * Eğer henüz iade edilmemişse 0 döner.
+     */
     public int calculateLateDays() {
-        LocalDate end = isReturned ? returnDate : LocalDate.now();
-        if (end.isAfter(dueDate)) {
-            return (int) ChronoUnit.DAYS.between(dueDate, end);
+        if (!isReturned()) return 0;
+        LocalDate due = getDueDate();
+        LocalDate ret = getReturnDate();
+        if (ret == null) return 0;
+        if (ret.isAfter(due)) {
+            return (int) ChronoUnit.DAYS.between(due, ret);
         }
         return 0;
     }
 
+    /**
+     * Ceza hesaplama: gecikme gün sayısı * günlük ceza.
+     * LibrarySystem tarafındaki çağrı active.calculateFine() ile uyumludur.
+     */
     public double calculateFine() {
-        return calculateLateDays() * DAILY_FINE;
+        int late = calculateLateDays();
+        if (late <= 0) return 0.0;
+        return late * FINE_PER_DAY;
     }
 
-    // --- mark returned (update book, member and possibly assign to next waitlist member) ---
-    public void markReturned() {
-        if (isReturned) return;
-        this.isReturned = true;
-        this.returnDate = LocalDate.now();
-
-        // book updated
-        book.returnCopy();
-
-        // member updated: remove active loan / active book
-        member.returnBook(book);
-
-        // if there is a waitlist, automatically loan to next member (if they can borrow)
-        Member next = book.getNextWaitingMember();
-        if (next != null) {
-            // only give book to next if next can borrow (respect member limits/penalties)
-            if (next.canBorrow()) {
-                boolean borrowed = book.borrowCopy();
-                if (borrowed) {
-                    next.borrowBook(book); // creates LoanRecord inside Member.borrowBook
-                } else {
-                    // if borrow failed (race condition), optionally re-enqueue next
-                    book.addToWaitList(next);
-                }
-            } else {
-                // next cannot borrow — skip and possibly re-enqueue or notify
-                // For simplicity, do nothing (could re-enqueue)
-            }
-        }
+    @Override
+    public String toString() {
+        return "LoanRecord{" +
+                "member=" + (member != null ? member.getName() : "null") +
+                ", book=" + (book != null ? book.getTitle() : "null") +
+                ", borrowDate=" + borrowDate +
+                ", dueDate=" + getDueDate() +
+                ", returnDate=" + returnDate +
+                ", returned=" + returned +
+                '}';
     }
 }

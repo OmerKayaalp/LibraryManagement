@@ -5,6 +5,8 @@ import dataStructure.linkedList.MyLinkedList;
 
 public class HashTable<K, V> {
 
+    private int hashSalt = 0;
+
     private HashNode<K, V>[] buckets;
     private int capacity;
     private int size;
@@ -16,14 +18,24 @@ public class HashTable<K, V> {
         this.buckets = new HashNode[capacity];
         this.size = 0;
     }
+    
+    @SuppressWarnings("unchecked")
+    public HashTable(int salt) {
+    this.capacity = 11;
+    this.buckets = new HashNode[capacity];
+    this.size = 0;
+    this.hashSalt = salt;
+    }
 
     private void validateKey(K key) {
         if (key == null) throw new IllegalArgumentException("Key cannot be null");
     }
 
-    private int getIndex(K key) {
-        return Math.abs(key.hashCode()) % capacity;
-    }
+   private int getIndex(K key) {
+    int h = key.hashCode();
+    h = h ^ hashSalt; // mix with student id salt (if provided)
+    return Math.abs(h) % capacity;
+}
 
     public int size() {
         return size;

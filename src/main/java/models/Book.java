@@ -3,7 +3,11 @@ package models;
 import dataStructure.queue.MyQueue;
 
 public class Book implements Comparable<Book> {
-    private int id;
+
+    // --- Otomatik kitap ID için counter eklendi ---
+    private static int idCounter = 1;
+
+    private int bookId;
     private String isbn;
     private String title;
     private String author;
@@ -17,8 +21,13 @@ public class Book implements Comparable<Book> {
 
     private MyQueue<Member> waitList;
 
-    public Book(int id, String isbn, String title, String author, String category, int publishYear, int pageCount, int totalCopies) {
-        this.id = id;
+    // --- Constructor ---
+    public Book(String isbn, String title, String author, String category,
+                int publishYear, int pageCount, int totalCopies) {
+
+        // Book ID artık otomatik üretiliyor
+        this.bookId = idCounter++;
+
         this.isbn = isbn;
         this.title = title;
         this.author = author;
@@ -26,13 +35,37 @@ public class Book implements Comparable<Book> {
         this.publishYear = publishYear;
         this.pageCount = pageCount;
         this.totalCopies = totalCopies;
+
+        this.borrowedCopies = 0;
+        this.popularityCount = 0;
+        this.waitList = new MyQueue<>();
+    }
+
+    // --- Eğer eski constructor'ı da istersen (ID elle verilen) ---
+    public Book(int bookId, String isbn, String title, String author,
+                String category, int publishYear, int pageCount, int totalCopies) {
+
+        this.bookId = bookId;
+        // idCounter’ın geride kalmaması için güncelliyoruz:
+        if (bookId >= idCounter) {
+            idCounter = bookId + 1;
+        }
+
+        this.isbn = isbn;
+        this.title = title;
+        this.author = author;
+        this.category = category;
+        this.publishYear = publishYear;
+        this.pageCount = pageCount;
+        this.totalCopies = totalCopies;
+
         this.borrowedCopies = 0;
         this.popularityCount = 0;
         this.waitList = new MyQueue<>();
     }
 
     // --- Getters ---
-    public int getId() { return id; }
+    public int getBookId() { return bookId; }
     public String getIsbn() { return isbn; }
     public String getTitle() { return title; }
     public String getAuthor() { return author; }
@@ -96,7 +129,6 @@ public class Book implements Comparable<Book> {
     // --- For MaxHeap (descending popularity) ---
     @Override
     public int compareTo(Book other) {
-        // Higher popularity => "greater"
         return Integer.compare(this.popularityCount, other.popularityCount);
     }
 
@@ -105,11 +137,26 @@ public class Book implements Comparable<Book> {
         if (this == o) return true;
         if (!(o instanceof Book)) return false;
         Book b = (Book) o;
-        return this.id == b.id;
+        return this.bookId == b.bookId;
     }
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(id);
+        return Integer.hashCode(bookId);
+    }
+
+    @Override
+    public String toString() {
+        return "Book{" +
+                "ID=" + bookId +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", category='" + category + '\'' +
+                ", publishYear=" + publishYear +
+                ", pageCount=" + pageCount +
+                ", totalCopies=" + totalCopies +
+                ", borrowedCopies=" + borrowedCopies +
+                ", popularityCount=" + popularityCount +
+                '}';
     }
 }

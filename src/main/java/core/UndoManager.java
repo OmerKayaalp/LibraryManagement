@@ -1,17 +1,21 @@
 package core;
 
+import core.LibrarySystem;
+import core.UndoAction;
 import dataStructure.stack.MyStack;
 
+import java.util.Stack;
+
 public class UndoManager {
-    private static UndoManager instance;
-    private MyStack<UndoAction> stack;
+    
+    private static UndoManager instance = new UndoManager();
+    private MyStack<UndoAction> stack = new MyStack<>();
 
-    private UndoManager() {
-        stack = new MyStack<>();
+    public UndoManager() {
+        // public constructor → Main içinde new UndoManager() kullanılabilir
     }
-
+    
     public static UndoManager getInstance() {
-        if (instance == null) instance = new UndoManager();
         return instance;
     }
 
@@ -19,8 +23,17 @@ public class UndoManager {
         stack.push(action);
     }
 
-    public void undoLast() {
-        UndoAction a = stack.pop();
-        if (a != null) a.undo();
+    public void undo() {
+    if (stack.isEmpty()) {
+        System.out.println("No actions to undo.");
+        return;
+    }
+
+    UndoAction a = stack.pop();
+    a.undo();   // <-- PARAMETRE YOK
+}
+
+    public boolean hasUndo() {
+        return !stack.isEmpty();
     }
 }
