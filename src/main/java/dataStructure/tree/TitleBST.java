@@ -5,6 +5,24 @@ import java.util.ArrayList;
 import java.util.List;
 import dataStructure.linkedList.MyLinkedList;
 
+/**
+ * TitleBST - Binary Search Tree for efficient title-based book search.
+ * 
+ * PURPOSE: Maintain sorted index of books by title for fast prefix search.
+ * Used in LibrarySystem for O(log n) title search instead of O(n) linear search.
+ * 
+ * DATA STRUCTURE: Binary Search Tree (BST)
+ * Why BST: Provides O(log n) average search time for sorted data.
+ * Better than linear search O(n) when searching by title prefix.
+ * 
+ * COMPLEXITY ANALYSIS:
+ * - add: O(log n) average, O(n) worst case (unbalanced tree)
+ * - remove: O(log n) average, O(n) worst case
+ * - searchByTitlePrefix: O(log n + m) where m is number of matches
+ * 
+ * NOTE: For production, AVL tree would provide guaranteed O(log n) performance,
+ * but BST is sufficient for this assignment's requirements.
+ */
 public class TitleBST {
     private class Node {
         String key; // normalized title

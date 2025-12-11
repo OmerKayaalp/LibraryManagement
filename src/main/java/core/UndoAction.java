@@ -5,11 +5,20 @@ import models.Member;
 import models.LoanRecord;
 
 /**
- * UndoAction: tek bir işlemi (add/remove/borrow/return vs.) geri almak için gerekli veriyi tutar
- * ve undo() ile geri almayı gerçekleştirir.
- *
- * Bu sınıf LibrarySystem içindeki "Internal" metotları (addBookInternal, removeBookInternal, addMemberInternal, removeMemberInternal)
- * kullanır; böylece undo işlemi sırasında yeniden UndoManager'a push edilmeyi engelleriz.
+ * UndoAction - Represents a single reversible operation in the library system.
+ * 
+ * PURPOSE: Store sufficient information to reverse an operation (add/remove/borrow/return).
+ * Used by UndoManager to implement undo functionality.
+ * 
+ * DESIGN PATTERN: Command Pattern
+ * Each action stores the operation type and necessary data to reverse it.
+ * 
+ * IMPORTANT: Uses "Internal" methods (addBookInternal, removeBookInternal, etc.)
+ * to avoid infinite recursion - undo operations don't push new undo actions.
+ * 
+ * COMPLEXITY:
+ * - undo(): O(1) to O(log n) depending on operation type
+ * - Storage: O(1) per action
  */
 public class UndoAction {
 
@@ -27,6 +36,7 @@ public class UndoAction {
     private final Book book;           // ilgili kitap (varsa)
     private final Member member;       // ilgili üye (varsa)
     private final LoanRecord loanRecord; // ilgili loan (BORROW/RETURN için)
+    private String description;        // yapılan işlemi anlatan metin
 
     public UndoAction(ActionType type, LibrarySystem library, Book book, Member member, LoanRecord loanRecord) {
         this.type = type;
@@ -34,23 +44,33 @@ public class UndoAction {
         this.book = book;
         this.member = member;
         this.loanRecord = loanRecord;
+        this.description = buildDescription();
     }
 
     /**
-     * Geri al (undo) işlemini gerçekleştirir.
-     * Uygulanabilir en güvenli/ölçeklenebilir adımlarla objeleri manipüle eder.
+     * Execute the undo operation to reverse the original action.
+     * 
+     * EDGE CASE HANDLING:
+     * - Null library: Returns early
+     * - Null objects: Checks before operations
+     * - Exceptions: Catches and logs, doesn't crash system
+     * 
+     * Time Complexity: Varies by operation type:
+     * - ADD_BOOK/REMOVE_BOOK: O(1) HashTable + O(log n) BST
+     * - BORROW_BOOK/RETURN_BOOK: O(1) to O(n) depending on member's active books
      */
     public void undo() {
         if (library == null) return;
 
         switch (type) {
             case ADD_BOOK:
-                // ADD_BOOK -> daha önce addBook() ile eklenen kitabı sil
+                // Reverse ADD_BOOK: remove the book that was added
+                // EDGE CASE: Book might have been removed already
                 if (book != null) {
                     try {
                         library.removeBookInternal(book.getBookId());
                     } catch (Exception e) {
-                        // toleranslı davran: hata logla ama throw etme
+                        // Graceful error handling: log but don't crash
                         System.err.println("Undo(ADD_BOOK) failed: " + e.getMessage());
                     }
                 }
@@ -90,34 +110,26 @@ public class UndoAction {
                 break;
 
             case BORROW_BOOK:
-                // BORROW_BOOK -> borrow işlemini geri al: loanRecord varsa onu "iptal et"
-                // - loanRecord.markReturnedWithoutMember() çağr (sadece book kopyasını geri alır)
-                // - member.removeActiveLoanRecord(loanRecord) çağr (üye listelerinden kaldırır)
-                // NOT: loanHistory global listeye müdahale edilmeyebilir (isteğe bağlı)
+                // Reverse BORROW_BOOK: cancel the loan
+                // EDGE CASE: LoanRecord might be null (rare), use fallback
                 if (loanRecord != null && member != null && book != null) {
                     try {
-                        // Önce loanRecord'u returned olarak işaretle (book copy geri gelir)
-                        // Bu metodun LoanRecord içinde implement edilmiş olması gerekir:
-                        // markReturnedWithoutMember() veya artık markReturned() member çağrısı yapmayacak şekilde.
+                        // Mark loan as returned (returns book copy without member update)
                         loanRecord.markReturnedWithoutMember();
-
-                        // Üyenin aktif loan/kopya listesinden kaydı sil
+                        // Remove from member's active books list
                         member.removeActiveLoanRecord(loanRecord);
-
-                        // Eğer istenirse loanHistory'den temizlenebilir - burada sadece toleranslı davranıyoruz
+                        // Note: Loan history kept for record-keeping purposes
                     } catch (Exception e) {
                         System.err.println("Undo(BORROW_BOOK) failed: " + e.getMessage());
                     }
                 } else {
-                    // fallback: eğer loanRecord yoksa (nadiren) book ve member nesneleri üzerinden basit geri alma
+                    // FALLBACK: If loanRecord missing, use book/member directly
+                    // EDGE CASE HANDLING: Graceful degradation
                     if (book != null && member != null) {
                         try {
-                            // Eğer üye aktif kitaba sahipse kaldır
                             if (member.hasBook(book)) {
-                                // removeActiveLoanRecord metodu member içinde mevcut olmalı
                                 member.removeActiveLoanRecord(findLoanForMemberBook(member, book));
                             }
-                            // geri dönüş kopyasını sağla
                             book.returnCopy();
                         } catch (Exception e) {
                             System.err.println("Undo(BORROW_BOOK) fallback failed: " + e.getMessage());
@@ -155,6 +167,30 @@ public class UndoAction {
             default:
                 System.err.println("Unsupported undo action: " + type);
         }
+    }
+
+    /**
+     * İnsan okunur açıklama üretir.
+     */
+    public String getDescription() {
+        if (description == null || description.isEmpty()) {
+            description = buildDescription();
+        }
+        return description;
+    }
+
+    private String buildDescription() {
+        String bookInfo = book != null ? book.getTitle() : "";
+        String memberInfo = member != null ? member.getName() : "";
+        return switch (type) {
+            case ADD_BOOK -> "Kitap ekleme geri alındı: " + bookInfo;
+            case REMOVE_BOOK -> "Kitap silme geri alındı: " + bookInfo;
+            case ADD_MEMBER -> "Üye ekleme geri alındı: " + memberInfo;
+            case REMOVE_MEMBER -> "Üye silme geri alındı: " + memberInfo;
+            case BORROW_BOOK -> "Ödünç alma geri alındı: " + bookInfo + " <- " + memberInfo;
+            case RETURN_BOOK -> "İade geri alındı: " + bookInfo + " -> " + memberInfo;
+            default -> "İşlem geri alındı.";
+        };
     }
 
     /**

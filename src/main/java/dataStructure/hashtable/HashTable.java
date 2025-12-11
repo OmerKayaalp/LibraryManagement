@@ -1,15 +1,39 @@
-
 package dataStructure.hashtable;
 
 import dataStructure.linkedList.MyLinkedList;
 
+/**
+ * HashTable - Hash table implementation with chaining for collision resolution.
+ * 
+ * PURPOSE: Fast O(1) average lookup, insertion, and deletion by key.
+ * Used in LibrarySystem for:
+ * - Book lookup by ID (O(1) average)
+ * - Member lookup by ID (O(1) average)
+ * 
+ * COMPLEXITY ANALYSIS:
+ * - get/put/remove: O(1) average case, O(n) worst case (all collisions)
+ * - Resize: O(n) when load factor threshold exceeded
+ * 
+ * UNIQUE STUDENT ID INTEGRATION:
+ * Uses hashSalt (student ID) to modify hash function, ensuring unique hash distribution
+ * across different submissions. This prevents identical hash patterns.
+ */
 public class HashTable<K, V> {
 
+    /**
+     * Hash salt (student ID) used to modify hash function.
+     * Ensures unique hash distribution per submission.
+     */
     private int hashSalt = 0;
 
     private HashNode<K, V>[] buckets;
     private int capacity;
     private int size;
+    
+    /**
+     * Load factor threshold for resizing.
+     * When size/capacity >= 0.7, table is resized to maintain O(1) performance.
+     */
     private final double loadFactorThreshold = 0.7;
 
     @SuppressWarnings("unchecked")
@@ -31,9 +55,19 @@ public class HashTable<K, V> {
         if (key == null) throw new IllegalArgumentException("Key cannot be null");
     }
 
+   /**
+    * Calculate bucket index for a key using hash function with salt.
+    * UNIQUE ID USAGE: XOR with hashSalt (student ID) ensures unique hash distribution.
+    * 
+    * Time Complexity: O(1)
+    * 
+    * @param key The key to hash
+    * @return Bucket index (0 to capacity-1)
+    */
    private int getIndex(K key) {
     int h = key.hashCode();
-    h = h ^ hashSalt; // mix with student id salt (if provided)
+    // XOR with student ID salt to ensure unique hash patterns per submission
+    h = h ^ hashSalt;
     return Math.abs(h) % capacity;
 }
 

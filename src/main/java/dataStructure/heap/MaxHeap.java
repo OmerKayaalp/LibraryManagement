@@ -2,8 +2,33 @@ package dataStructure.heap;
 
 import java.util.ArrayList;
 
+/**
+ * MaxHeap - Maximum heap implementation using array-based binary heap.
+ * 
+ * PURPOSE: Efficiently track and retrieve most popular books.
+ * Used in LibrarySystem for:
+ * - Tracking book popularity (O(log n) insert/update)
+ * - Retrieving top-K popular books (O(k log n))
+ * 
+ * DATA STRUCTURE: Binary Max Heap (array-based)
+ * Why Heap: Provides optimal O(log n) insert and O(k log n) top-K retrieval.
+ * Better than sorting entire collection O(n log n) when k << n.
+ * 
+ * COMPLEXITY ANALYSIS:
+ * - insert: O(log n)
+ * - extractMax: O(log n)
+ * - getTopK: O(k log n) where k is number requested
+ * - increaseKey: O(log n)
+ * 
+ * HEAP PROPERTY: Parent >= Children (max-heap)
+ * Array representation: parent at index i, children at 2i+1 and 2i+2
+ */
 public class MaxHeap<T extends Comparable<T>> {
 
+    /**
+     * Array-based heap storage.
+     * Index 0 is root (maximum element).
+     */
     private ArrayList<T> heap;
 
     public MaxHeap() {

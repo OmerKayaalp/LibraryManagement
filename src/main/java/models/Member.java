@@ -2,15 +2,38 @@ package models;
 
 import dataStructure.linkedList.MyLinkedList;
 
+/**
+ * Member model class representing a library member.
+ * 
+ * DATA STRUCTURE USAGE:
+ * - MyLinkedList<Book> activeBooks: Dynamic list of currently borrowed books
+ *   Why LinkedList: Books are frequently added/removed as members borrow/return.
+ *   LinkedList provides efficient O(1) add/remove operations.
+ * 
+ * - MyLinkedList<LoanRecord> loanHistory: Complete history of all loans
+ *   Why LinkedList: History grows dynamically and needs sequential access.
+ * 
+ * COMPLEXITY:
+ * - Add/Remove active book: O(1) average
+ * - Check if has book: O(n) where n is number of active books (acceptable for small n)
+ */
 public class Member {
 
     private final int memberID;
     private String name;
 
-    // Aktif ödünç alınan kitaplar
+    /**
+     * DATA STRUCTURE: LinkedList for Active Books
+     * Purpose: Maintain list of currently borrowed books
+     * Why LinkedList: Efficient O(1) add/remove operations for dynamic collections
+     */
     private MyLinkedList<Book> activeBooks;
 
-    // Tüm loan kayıtları
+    /**
+     * DATA STRUCTURE: LinkedList for Loan History
+     * Purpose: Maintain chronological history of all loans
+     * Why LinkedList: Efficient for sequential access and dynamic growth
+     */
     private MyLinkedList<LoanRecord> loanHistory;
 
     // limit

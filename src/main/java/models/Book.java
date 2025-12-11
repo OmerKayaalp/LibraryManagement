@@ -2,9 +2,23 @@ package models;
 
 import dataStructure.queue.MyQueue;
 
+/**
+ * Book model class representing a book in the library system.
+ * 
+ * DATA STRUCTURE USAGE:
+ * - MyQueue<Member> waitList: Used for managing waitlist (FIFO - First Come First Served)
+ *   This ensures fair distribution when books become available.
+ * 
+ * COMPLEXITY:
+ * - Waitlist operations: O(1) enqueue/dequeue
+ * - Popularity comparison: O(1) for heap operations
+ */
 public class Book implements Comparable<Book> {
 
-    // --- Otomatik kitap ID için counter eklendi ---
+    /**
+     * Auto-incrementing counter for generating unique book IDs.
+     * Ensures each book has a unique identifier.
+     */
     private static int idCounter = 1;
 
     private int bookId;
@@ -19,13 +33,28 @@ public class Book implements Comparable<Book> {
     private int borrowedCopies;
     private int popularityCount;
 
+    /**
+     * DATA STRUCTURE: Queue for Waitlist Management
+     * Purpose: Maintain FIFO order for members waiting for this book
+     * Why Queue: Ensures fair first-come-first-served access when book becomes available
+     */
     private MyQueue<Member> waitList;
 
-    // --- Constructor ---
+    /**
+     * Constructor: Creates a new book with auto-generated ID.
+     * 
+     * @param isbn ISBN identifier
+     * @param title Book title
+     * @param author Author name
+     * @param category Book category
+     * @param publishYear Publication year
+     * @param pageCount Number of pages
+     * @param totalCopies Total copies available in library
+     */
     public Book(String isbn, String title, String author, String category,
                 int publishYear, int pageCount, int totalCopies) {
 
-        // Book ID artık otomatik üretiliyor
+        // Auto-generate unique book ID
         this.bookId = idCounter++;
 
         this.isbn = isbn;
@@ -100,11 +129,24 @@ public class Book implements Comparable<Book> {
         return false;
     }
 
-    // --- Waitlist helpers ---
+    // --- Waitlist helpers (Queue Operations) ---
+    
+    /**
+     * Add member to waitlist queue (FIFO).
+     * Time Complexity: O(1)
+     * 
+     * @param m Member to add to waitlist
+     */
     public void addToWaitList(Member m) {
         if (m != null) waitList.enqueue(m);
     }
 
+    /**
+     * Get next member from waitlist (FIFO - first come first served).
+     * Time Complexity: O(1)
+     * 
+     * @return Next member in queue, or null if waitlist is empty
+     */
     public Member getNextWaitingMember() {
         if (waitList == null || waitList.isEmpty()) return null;
         return waitList.dequeue();
@@ -126,7 +168,16 @@ public class Book implements Comparable<Book> {
             || (category != null && category.toLowerCase().contains(q));
     }
 
-    // --- For MaxHeap (descending popularity) ---
+    /**
+     * Compare books by popularity count (for MaxHeap).
+     * Time Complexity: O(1)
+     * 
+     * Used by MaxHeap to maintain heap property based on popularity.
+     * Higher popularity count = higher priority in heap.
+     * 
+     * @param other Other book to compare with
+     * @return Negative if this is less popular, positive if more popular, 0 if equal
+     */
     @Override
     public int compareTo(Book other) {
         return Integer.compare(this.popularityCount, other.popularityCount);

@@ -3,6 +3,20 @@ package models;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * LoanRecord - Represents a single book loan transaction.
+ * 
+ * PURPOSE: Track borrowing history, due dates, and late penalties.
+ * Used in LibrarySystem for maintaining complete loan history.
+ * 
+ * FEATURES:
+ * - Tracks borrow and return dates
+ * - Calculates late fees based on overdue days
+ * - Supports undo operations via markReturnedWithoutMember()
+ * 
+ * COMPLEXITY:
+ * - All operations: O(1)
+ */
 public class LoanRecord {
 
     private final Book book;
@@ -11,9 +25,14 @@ public class LoanRecord {
     private LocalDate returnDate;
     private boolean returned;
 
-    // default gün sayısı (istersen constructor ile değiştirebilirsin)
+    /**
+     * Default loan period in days.
+     */
     private static final int DEFAULT_LOAN_DAYS = 14;
-    // günlük ceza (TL veya istediğin birim)
+    
+    /**
+     * Fine amount per day for overdue books.
+     */
     private static final double FINE_PER_DAY = 2.0;
 
     public LoanRecord(Book book, Member member) {
@@ -78,15 +97,20 @@ public class LoanRecord {
     }
 
     /**
-     * Undo için: member'ı değiştirmeden sadece book kopyasını geri alır.
+     * Mark book as returned without updating member (for undo operations).
+     * 
+     * EDGE CASE HANDLING: Prevents double-return by checking returned flag.
+     * Used by UndoManager to reverse borrow operations without member update.
+     * 
+     * Time Complexity: O(1)
      */
     public void markReturnedWithoutMember() {
-        if (returned) return;
+        if (returned) return; // EDGE CASE: Already returned
 
         this.returned = true;
         this.returnDate = LocalDate.now();
 
-        // sadece book copy iade edilsin
+        // Only return book copy, don't update member (member update handled separately)
         book.returnCopy();
     }
 

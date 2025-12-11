@@ -1,7 +1,32 @@
 package dataStructure.linkedList;
 
+/**
+ * MyLinkedList - Singly linked list implementation.
+ * 
+ * PURPOSE: Dynamic collection that efficiently handles frequent additions/removals.
+ * Used in LibrarySystem for:
+ * - Member's active books list (frequently changes)
+ * - Member's loan history (grows dynamically)
+ * - Global loan history tracking
+ * 
+ * DATA STRUCTURE: Singly Linked List
+ * Why LinkedList: O(1) add/remove at ends, efficient for dynamic collections.
+ * Better than ArrayList when frequent insertions/deletions occur.
+ * 
+ * COMPLEXITY ANALYSIS:
+ * - add (at end): O(1)
+ * - add (at index): O(n) worst case
+ * - get: O(n) - must traverse from head
+ * - remove: O(n) worst case
+ * - contains: O(n)
+ * 
+ * TRADE-OFF: Slower random access O(n) vs faster insertions O(1) compared to ArrayList.
+ */
 public class MyLinkedList<T> {
 
+    /**
+     * Inner class representing a node in the linked list.
+     */
     private static class Node<T> {
         T data;
         Node<T> next;
@@ -11,7 +36,14 @@ public class MyLinkedList<T> {
         }
     }
 
+    /**
+     * Head of the linked list (first node).
+     */
     private Node<T> head;
+    
+    /**
+     * Current size of the list.
+     */
     private int size;
 
     public MyLinkedList() {
