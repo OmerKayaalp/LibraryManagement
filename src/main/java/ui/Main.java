@@ -12,10 +12,7 @@ import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * Main - Console interface for Library Management System.
- * User IDs are generated from a reproducible Random seed so they stay predictable.
- */
+// Main console UI for the Library Management System.
 public class Main {
 
     private static final Scanner sc = new Scanner(System.in);
@@ -25,7 +22,7 @@ public class Main {
      * User IDs will always be generated from this seeded source.
      */
     private static final Random rng = new Random();
-    // Üye ID üretimi için deterministik sayaç (klasik okul numarası benzeri)
+    // Deterministic member ID counter (school-like incremental)
     private static int memberIdCounter = 230315035;
     
     private static final LibrarySystem library = new LibrarySystem();
@@ -33,8 +30,6 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Welcome to the Library Management System");
         
-        // UNIQUE STUDENT ID INTEGRATION: Auto-generate initial data
-        // Using STUDENT_ID mod 10 to determine number of initial books/members
         initializeSampleData();
 
         boolean success = true;
@@ -65,12 +60,12 @@ public class Main {
 
     private static void printMenu() {
         System.out.println("\n===== LIBRARY SYSTEM MENU =====");
-        System.out.println("1. Kullanıcı İşlemleri");
-        System.out.println("2. Kitap İşlemleri");
-        System.out.println("3. Kitap Ödünç Al (ID ile)");
-        System.out.println("4. Kitap İade Et (ID ile)");
-        System.out.println("5. Son İşlemi Geri Al (UNDO)");
-        System.out.println("6. Çıkış");
+        System.out.println("1. Member Actions");
+        System.out.println("2. Book Actions");
+        System.out.println("3. Borrow Book (by IDs)");
+        System.out.println("4. Return Book (by IDs)");
+        System.out.println("5. Undo Last Action");
+        System.out.println("6. Exit");
     }
 
     // -------------------- MENU OPERATIONS -----------------------
@@ -78,15 +73,15 @@ public class Main {
     private static void handleUserOperations() {
         boolean stay = true;
         while (stay) {
-            System.out.println("\n--- KULLANICI İŞLEMLERİ ---");
-            System.out.println("1. Üye Ekle");
-            System.out.println("2. Üye Sil");
-            System.out.println("3. Üyeleri Listele");
-            System.out.println("4. Üye Geçmişini Göster");
-            System.out.println("5. Üyenin Ödünç Aldığı Kitaplar");
-            System.out.println("6. Üye Arama (ID/İsim)");
-            System.out.println("0. Geri Dön");
-            int choice = readInt("Seçiminiz: ");
+            System.out.println("\n--- MEMBER ACTIONS ---");
+            System.out.println("1. Add Member");
+            System.out.println("2. Remove Member");
+            System.out.println("3. List Members");
+            System.out.println("4. Show Member History");
+            System.out.println("5. Member Active Loans");
+            System.out.println("6. Search Member (ID/Name)");
+            System.out.println("0. Back");
+            int choice = readInt("Choice: ");
 
             switch (choice) {
                 case 1 -> addMember();
@@ -96,7 +91,7 @@ public class Main {
                 case 5 -> showMemberActiveLoans();
                 case 6 -> searchMembers();
                 case 0 -> stay = false;
-                default -> System.out.println("Geçersiz seçim.");
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
@@ -104,16 +99,16 @@ public class Main {
     private static void handleBookOperations() {
         boolean stay = true;
         while (stay) {
-            System.out.println("\n--- KİTAP İŞLEMLERİ ---");
-            System.out.println("1. Kitap Ekle");
-            System.out.println("2. Kitap Sil");
-            System.out.println("3. Kitapları Listele");
-            System.out.println("4. Kitap Durumunu Göster");
-            System.out.println("5. Kitap Bekleme Listesini Göster");
-            System.out.println("6. Kitap Ara");
-            System.out.println("7. En Popüler Kitapları Göster");
-            System.out.println("0. Geri Dön");
-            int choice = readInt("Seçiminiz: ");
+            System.out.println("\n--- BOOK ACTIONS ---");
+            System.out.println("1. Add Book");
+            System.out.println("2. Remove Book");
+            System.out.println("3. List Books");
+            System.out.println("4. Show Book Status");
+            System.out.println("5. Show Book Waitlist");
+            System.out.println("6. Search Books");
+            System.out.println("7. Show Most Popular Books");
+            System.out.println("0. Back");
+            int choice = readInt("Choice: ");
 
             switch (choice) {
                 case 1 -> addBook();
@@ -124,7 +119,7 @@ public class Main {
                 case 6 -> searchBooks();
                 case 7 -> showMostPopularBooks();
                 case 0 -> stay = false;
-                default -> System.out.println("Geçersiz seçim.");
+                default -> System.out.println("Invalid choice.");
             }
         }
     }
@@ -152,7 +147,7 @@ public class Main {
 
         Member m = new Member(id, name);
         library.addMember(m);
-        System.out.println("Member added: " + m);
+            System.out.println("Member added: " + m);
     }
 
     private static void addBook() {
@@ -239,10 +234,10 @@ public class Main {
         }
         MyLinkedList<Book> active = m.getActiveBooks();
         if (active == null || active.size() == 0) {
-            System.out.println("Bu üyenin ödünç aldığı kitap yok.");
+            System.out.println("This member has no active loans.");
             return;
         }
-        System.out.println("\n--- Aktif Ödünçler: " + m.getName() + " ---");
+        System.out.println("\n--- Active Loans: " + m.getName() + " ---");
         for (int i = 0; i < active.size(); i++) {
             Book b = active.get(i);
             System.out.println("ID: " + b.getBookId() + " | " + b.getTitle() + " | " + b.getAuthor());
@@ -250,22 +245,22 @@ public class Main {
     }
 
     private static void searchMembers() {
-        System.out.println("\n--- ÜYE ARAMA ---");
-        System.out.println("1. ID'ye göre ara");
-        System.out.println("2. İsme göre ara");
-        int c = readInt("Seçiminiz: ");
+        System.out.println("\n--- MEMBER SEARCH ---");
+        System.out.println("1. Search by ID");
+        System.out.println("2. Search by Name");
+        int c = readInt("Choice: ");
         if (c == 1) {
-            int memberId = readInt("Üye ID: ");
+            int memberId = readInt("Member ID: ");
             Member m = library.getMember(memberId);
             if (m == null) {
-                System.out.println("Üye bulunamadı.");
+                System.out.println("Member not found.");
                 return;
             }
             System.out.println("ID: " + m.getMemberID() + " | Ad: " + m.getName() + " | Aktif: " + m.getActiveBooks().size());
         } else if (c == 2) {
-            String query = readString("İsim (parça kabul edilir): ").trim().toLowerCase();
+            String query = readString("Name (partial accepted): ").trim().toLowerCase();
             if (query.isEmpty()) {
-                System.out.println("İsim boş olamaz.");
+                System.out.println("Name cannot be empty.");
                 return;
             }
             MyLinkedList<Member> members = library.listAllMembers();
@@ -277,9 +272,9 @@ public class Main {
                     found = true;
                 }
             }
-            if (!found) System.out.println("Eşleşen üye yok.");
+            if (!found) System.out.println("No matching member.");
         } else {
-            System.out.println("Geçersiz seçim.");
+            System.out.println("Invalid choice.");
         }
     }
 
@@ -475,7 +470,7 @@ public class Main {
     }
 
     private static int generateMemberId() {
-        // Her yeni üye için sabit bazdan artan ID üretilir (ör: 230315035, 230315036, ...)
+        // Sequential member IDs starting from a fixed base (e.g., 230315035, 230315036, ...)
         return memberIdCounter++;
     }
 
@@ -507,17 +502,8 @@ public class Main {
         return true;
     }
 
-    /**
-     * Initialize sample data using STUDENT_ID for unique data generation.
-     * 
-     * UNIQUE STUDENT ID INTEGRATION:
-     * - Uses STUDENT_ID mod 10 to determine number of initial books (ensures unique count)
-     * - Uses STUDENT_ID as random seed for reproducible but unique data
-     * - Each submission will have different initial data based on their ID
-     */
+    // Create initial demo data based on STUDENT_ID
     private static void initializeSampleData() {
-        // Determine number of books and members based on STUDENT_ID mod 10
-        // This ensures each submission has unique initial data count
         int studentIdMod = LibrarySystem.STUDENT_ID % 10;
         int numBooks = 5 + studentIdMod; // 5 to 14 books based on ID
         int numMembers = 3 + (studentIdMod % 5); // 3 to 7 members based on ID
@@ -555,7 +541,7 @@ public class Main {
         // Add books using STUDENT_ID seeded random
         for (int i = 0; i < numBooks; i++) {
             int titleIndex = (i + studentIdMod) % bookTitles.length;
-            // Yazar başlıkla eşleşsin diye aynı index kullan
+            // Keep author aligned with title using the same index
             int authorIndex = titleIndex % bookAuthors.length;
             int categoryIndex = (i + studentIdMod * 2) % bookCategories.length;
             
